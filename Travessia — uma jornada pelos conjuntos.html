@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Travessia — uma jornada pelos conjuntos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --sky-top:#2e2350; --sky-mid:#b5577a; --sky-low:#f0a866; --sun:#ffe2a8;
+  --dune-far:#c97b57; --dune-mid:#a95e3c; --dune-near:#8a4528; --stars:.25;
+  --bg:#2e2350;
+  --ink:#fff6e8; --ink-soft:rgba(255,246,232,.74);
+  --gold:#ffd98a; --teal:#8fe3d6; --rose:#ff9bb0;
+  --panel:rgba(48,20,40,.4); --veil:rgba(30,10,30,.5);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --sky-top:#05071a; --sky-mid:#161c46; --sky-low:#4b3460; --sun:#f3dcae;
+    --dune-far:#2b2850; --dune-mid:#201d3d; --dune-near:#15122b; --stars:1;
+    --bg:#05071a; --panel:rgba(12,10,34,.55); --veil:rgba(4,4,18,.55);
+  }
+}
+:root[data-theme="dark"]{
+  --sky-top:#05071a; --sky-mid:#161c46; --sky-low:#4b3460; --sun:#f3dcae;
+  --dune-far:#2b2850; --dune-mid:#201d3d; --dune-near:#15122b; --stars:1;
+  --bg:#05071a; --panel:rgba(12,10,34,.55); --veil:rgba(4,4,18,.55);
+}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{height:100%;margin:0;background:var(--bg);overflow:hidden;color:var(--ink);
+  font-family:'Jost',system-ui,-apple-system,'Segoe UI',sans-serif;font-weight:300;
+  -webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+#world{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
+
+#hud{position:fixed;left:14px;top:calc(env(safe-area-inset-top,0px) + 12px);right:64px;pointer-events:none;z-index:2;
+  opacity:0;transition:opacity .8s;text-shadow:0 1px 10px rgba(0,0,0,.45)}
+#hud.on{opacity:1}
+#hud .rule{font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;font-size:19px;line-height:1.25}
+#hud .line{display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin-top:6px;font-size:15px}
+#hud .line b{font-weight:500;color:var(--gold)}
+#hud svg{display:block}
+#toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 22px);transform:translate(-50%,10px);z-index:3;pointer-events:none;
+  width:min(92vw,460px);text-align:center;font-family:'Cormorant Garamond',Georgia,serif;font-size:clamp(18px,4.6vw,22px);line-height:1.35;
+  padding:12px 18px;border-radius:20px;background:var(--panel);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+  opacity:0;transition:opacity .7s,transform .7s}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+#toast b{font-family:'Jost',sans-serif;font-weight:500;font-size:.82em;color:var(--gold)}
+
+#ui{position:fixed;inset:0;z-index:4;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;
+  padding:calc(env(safe-area-inset-top,0px) + 14px) 14px calc(env(safe-area-inset-bottom,0px) + 12px);gap:6px;
+  background:radial-gradient(ellipse at 50% 45%,var(--veil),transparent 80%);
+  transition:opacity 1s ease;text-shadow:0 1px 14px rgba(0,0,0,.35)}
+#ui.off{opacity:0;pointer-events:none}
+#top{text-align:center;min-height:58px}
+#chapter{font-family:'Cormorant Garamond',Georgia,serif;font-weight:400;font-size:clamp(24px,6vw,34px);letter-spacing:.03em;line-height:1.1}
+#chapter span{font-size:.62em;opacity:.6;margin-right:.5em;letter-spacing:.18em}
+#subtitle{font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;color:var(--ink-soft);font-size:clamp(16px,4vw,20px);margin-top:2px}
+#stage-wrap{flex:1;min-height:0;width:100%;max-width:520px;display:flex;align-items:center;justify-content:center}
+#stage{width:100%;height:100%;touch-action:none;overflow:visible}
+#bottom{width:100%;max-width:520px;box-sizing:border-box;text-align:center;padding:12px 14px 14px;border-radius:22px;
+  background:var(--panel);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+#prompt{margin:0;font-size:15.5px;line-height:1.5;min-height:1.5em}
+#prompt b{font-weight:500;color:var(--gold)}
+#prompt .eq{display:block;font-size:17px;margin:2px 0}
+#prompt .goal{display:block;font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;font-size:18px;color:var(--ink-soft)}
+#controls{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:10px}
+#controls:empty{display:none}
+
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+.stone{min-width:54px;padding:10px 16px;border-radius:999px;border:1px solid rgba(255,246,232,.35);
+  background:rgba(255,246,232,.06);font-size:18px;font-weight:400;transition:background .4s,border-color .4s,opacity .4s}
+.stone:hover{background:rgba(255,246,232,.14)}
+.stone.right{border-color:var(--gold);background:rgba(255,217,138,.25)}
+.stone.wrong{opacity:.35}
+.walk{padding:10px 22px;border-radius:999px;border:1px solid var(--gold);background:rgba(255,217,138,.14);
+  font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;font-size:19px}
+.term{padding:8px 11px;border-radius:14px;border:1px solid rgba(255,246,232,.3);background:rgba(255,246,232,.05);font-size:14.5px;line-height:1.2}
+.term small{display:block;opacity:.65;font-size:12px}
+.term.on{border-color:var(--gold);background:rgba(255,217,138,.22)}
+input[type=range]{width:min(320px,86%);accent-color:var(--gold);height:30px}
+
+#narration{position:fixed;inset:0;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:calc(env(safe-area-inset-top,0px) + 24px) 28px calc(env(safe-area-inset-bottom,0px) + 24px);
+  background:radial-gradient(ellipse at 50% 45%,var(--veil),transparent 75%);
+  opacity:0;pointer-events:none;transition:opacity .9s ease;text-align:center;text-shadow:0 1px 18px rgba(0,0,0,.45)}
+#narration.on{opacity:1;pointer-events:auto}
+#ntext{max-width:30ch;font-family:'Cormorant Garamond',Georgia,serif;font-size:clamp(21px,5.4vw,27px);line-height:1.42}
+#ntext p{margin:.4em 0;opacity:0;transform:translateY(8px);transition:opacity 1.3s ease,transform 1.3s ease}
+#ntext p.in{opacity:1;transform:none}
+#ntext em{color:var(--ink-soft)}
+#ntext small{font-family:'Jost',sans-serif;font-size:14px;letter-spacing:.03em;color:var(--ink-soft)}
+#narration.title h1{font-weight:400;font-size:clamp(52px,15vw,88px);letter-spacing:.14em;margin:0 0 .1em;line-height:1}
+.f{display:inline-block;font-family:'Jost',sans-serif;font-weight:400;font-size:.74em;padding:.35em .9em;border-radius:999px;
+  border:1px solid rgba(255,217,138,.55);color:var(--gold);background:rgba(255,217,138,.07);white-space:nowrap}
+#nbtn{margin-top:26px;opacity:0;transition:opacity .8s}
+#sound{position:fixed;z-index:6;top:calc(env(safe-area-inset-top,0px) + 10px);right:12px;width:40px;height:40px;border-radius:50%;
+  border:1px solid rgba(255,246,232,.3);background:rgba(0,0,0,.14);font-size:17px}
+#sound.muted{opacity:.4;text-decoration:line-through}
+
+.glyph{transition:transform 1.15s cubic-bezier(.25,.8,.25,1),opacity 1s ease}
+.glyph.held{transition:opacity 1s ease}
+.glyph.drag{cursor:grab}
+.bob{animation:bob 4.5s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-4px)}}
+.ring{fill:url(#pool);stroke:var(--gold);stroke-opacity:.75;stroke-width:1.4;stroke-dasharray:3 6}
+.ca{fill:rgba(255,217,138,.09);stroke:var(--gold);stroke-width:1.5}
+.cb{fill:rgba(143,227,214,.09);stroke:var(--teal);stroke-width:1.5}
+.cc{fill:rgba(255,155,176,.09);stroke:var(--rose);stroke-width:1.5}
+.univ{fill:none;stroke:var(--ink);stroke-opacity:.35;stroke-dasharray:2 7;stroke-width:1.2}
+.lbl{fill:var(--ink);font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;font-size:20px}
+.lbl.s{font-size:15px;fill:var(--ink-soft)}
+.num{fill:var(--ink);font-family:'Jost',sans-serif;font-size:17px;font-weight:400}
+.mov,.dot{transition:transform 1s cubic-bezier(.25,.8,.25,1)}
+.noanim .mov,.noanim .dot{transition:none}
+.dot{mix-blend-mode:screen}
+.da{fill:var(--gold)} .db{fill:var(--teal)}
+.badge circle{transition:fill .6s,stroke .6s}
+.badge text{font-family:'Jost',sans-serif;font-size:13px;font-weight:500;text-anchor:middle;dominant-baseline:central}
+.badge.zero circle{fill:rgba(255,246,232,.04);stroke:rgba(255,246,232,.25)}
+.badge.zero text{fill:var(--ink-soft)}
+.badge.ok circle{fill:rgba(255,217,138,.55);stroke:var(--gold)}
+.badge.ok text{fill:#3a2208}
+.badge.over circle{fill:rgba(255,155,176,.35);stroke:var(--rose)}
+.badge.over text,.badge.neg text{fill:var(--ink)}
+.badge.neg circle{fill:rgba(143,227,214,.25);stroke:var(--teal)}
+@media (prefers-reduced-motion:reduce){.bob{animation:none}.glyph,.mov,.dot{transition-duration:.01s}}
+</style>
+</head>
+<body>
+<canvas id="world" aria-label="O deserto. Toque para pular, segure no ar para planar."></canvas>
+<div id="hud" aria-live="polite"></div>
+<div id="toast" aria-live="polite"></div>
+<main id="ui" class="off">
+  <header id="top"><div id="chapter"></div><div id="subtitle"></div></header>
+  <section id="stage-wrap"><svg id="stage" viewBox="0 0 400 400" aria-label="Área do enigma"></svg></section>
+  <footer id="bottom"><p id="prompt" aria-live="polite"></p><div id="controls"></div></footer>
+</main>
+<div id="narration" role="dialog" aria-live="polite"><div id="ntext"></div><button id="nbtn" class="walk">continuar</button></div>
+<button id="sound" aria-label="Som ligado/desligado">♪</button>
+
+<script>
+/* ================= utilidades ================= */
+const $=s=>document.querySelector(s);
+const NS='http://www.w3.org/2000/svg',svg=$('#stage'),controls=$('#controls');
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const PI2=Math.PI*2,clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),lerp=(a,b,t)=>a+(b-a)*t;
+function el(tag,attrs={},parent){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e}
+function txt(x,y,s,cls='lbl',parent=svg){const t=el('text',{x,y,class:cls,'text-anchor':'middle'},parent);t.textContent=s;return t}
+function pt(e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse())}
+const dist=(p,c)=>Math.hypot(p.x-c.x,p.y-c.y);
+const setPrompt=h=>{$('#prompt').innerHTML=h};
+function setChapter(n,t,s){$('#chapter').innerHTML=`<span>${n}</span>${t}`;$('#subtitle').textContent=s}
+function showUI(on){$('#ui').classList.toggle('off',!on);if(on)hud('')}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function hash(i){const x=Math.sin(i*127.1+311.7)*43758.5453;return x-Math.floor(x)}
+function hud(h){$('#hud').innerHTML=h;$('#hud').classList.toggle('on',!!h)}
+function toast(h,ms=2800){const t=$('#toast');t.innerHTML=h;t.classList.add('on');clearTimeout(toast.h);toast.h=setTimeout(()=>t.classList.remove('on'),ms)}
+
+/* ================= som ================= */
+let AC=null,master=null,noiseBuf=null,soundOn=true;
+function initAudio(){
+  if(AC)return;try{AC=new (window.AudioContext||window.webkitAudioContext)()}catch(e){return}
+  master=AC.createGain();master.gain.value=soundOn?.6:0;master.connect(AC.destination);
+  const lp=AC.createBiquadFilter();lp.type='lowpass';lp.frequency.value=700;const dg=AC.createGain();dg.gain.value=.05;lp.connect(dg);dg.connect(master);
+  [110,164.8,220.4].forEach((f,i)=>{const o=AC.createOscillator();o.type=i===2?'triangle':'sine';o.frequency.value=f;
+    const g=AC.createGain();g.gain.value=i===2?.12:.38;o.connect(g);g.connect(lp);o.start();
+    const l=AC.createOscillator();l.frequency.value=.05+i*.031;const lg=AC.createGain();lg.gain.value=.14;l.connect(lg);lg.connect(g.gain);l.start()});
+  noiseBuf=AC.createBuffer(1,AC.sampleRate*2,AC.sampleRate);const d=noiseBuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
+  const n=AC.createBufferSource();n.buffer=noiseBuf;n.loop=true;const bp=AC.createBiquadFilter();bp.type='bandpass';bp.frequency.value=520;bp.Q.value=.7;
+  const wg=AC.createGain();wg.gain.value=.022;n.connect(bp);bp.connect(wg);wg.connect(master);n.start();
+  const l=AC.createOscillator();l.frequency.value=.07;const lg=AC.createGain();lg.gain.value=280;l.connect(lg);lg.connect(bp.frequency);l.start();
+}
+const SCALE=[196,220,261.63,293.66,329.63,392,440,523.25,587.33,659.25,783.99,880];
+function chime(i=5,vol=1){if(!AC)return;const t=AC.currentTime,f=SCALE[clamp(i|0,0,SCALE.length-1)];
+  [1,2.005,3.01].forEach((m,k)=>{const o=AC.createOscillator();o.frequency.value=f*m;const g=AC.createGain();
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.11*vol/(k*1.8+1),t+.015);g.gain.exponentialRampToValueAtTime(.0001,t+2.6-k*.5);
+    o.connect(g);g.connect(master);o.start(t);o.stop(t+2.7)})}
+function whoosh(vol=1,freq=900,dur=.45){if(!AC||!noiseBuf)return;const t=AC.currentTime,s=AC.createBufferSource();s.buffer=noiseBuf;
+  const bp=AC.createBiquadFilter();bp.type='bandpass';bp.frequency.setValueAtTime(freq,t);bp.frequency.exponentialRampToValueAtTime(freq*2,t+dur);bp.Q.value=1.2;
+  const g=AC.createGain();g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.07*vol,t+.05);g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+  s.connect(bp);bp.connect(g);g.connect(master);s.start(t,Math.random());s.stop(t+dur+.05)}
+const soft=()=>chime(0,.55);
+async function cascade(){for(const i of [5,7,9,11]){chime(i,.8);await sleep(160)}}
+$('#sound').onclick=()=>{soundOn=!soundOn;$('#sound').classList.toggle('muted',!soundOn);initAudio();if(master)master.gain.value=soundOn?.6:0};
+
+/* ================= glifos (forma + cor) ================= */
+const COL={gold:'#ffd98a',rose:'#ff9bb0',teal:'#8fe3d6'};
+const SHAPE={circle:['círculo','m'],triangle:['triângulo','m'],diamond:['losango','m'],star:['estrela','f']};
+const COLORNAME={gold:['dourado','dourada'],rose:['rosado','rosada'],teal:['verde-água','verde-água']};
+function describe(it){const [n,g]=SHAPE[it.shape];return `${g==='f'?'Uma':'Um'} ${n} ${COLORNAME[it.color][g==='f'?1:0]}`}
+function shapePath(s,r=13){
+  if(s==='circle')return `M ${r} 0 A ${r} ${r} 0 1 1 ${-r} 0 A ${r} ${r} 0 1 1 ${r} 0 Z`;
+  if(s==='triangle')return `M 0 ${-r} L ${r*.95} ${r*.72} L ${-r*.95} ${r*.72} Z`;
+  if(s==='diamond')return `M 0 ${-r*1.05} L ${r*.75} 0 L 0 ${r*1.05} L ${-r*.75} 0 Z`;
+  let p='';for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5,rr=i%2?r*.46:r*1.05;p+=(i?'L':'M')+(Math.cos(a)*rr).toFixed(1)+' '+(Math.sin(a)*rr).toFixed(1)+' '}return p+'Z'}
+const PATHS={};for(const s in SHAPE)PATHS[s]=new Path2D(shapePath(s,10));
+const mk=(color,shape)=>({color,shape,key:color+shape});
+const warm=it=>it.color!=='teal',sharp=it=>it.shape!=='circle';
+function icon(it,sz=20){return `<svg viewBox="-16 -16 32 32" width="${sz}" height="${sz}"><path d="${shapePath(it.shape,11)}" fill="${COL[it.color]}"/></svg>`}
+const G=s=>{const m={gc:['gold','circle'],gt:['gold','triangle'],gd:['gold','diamond'],gs:['gold','star'],rc:['rose','circle'],rt:['rose','triangle'],rd:['rose','diamond'],rs:['rose','star'],tc:['teal','circle'],tt:['teal','triangle'],td:['teal','diamond'],ts:['teal','star']}[s];return mk(m[0],m[1])};
+
+/* ================= o mundo ================= */
+const cv=$('#world'),cx=cv.getContext('2d');
+let W,H,DPR,K,pal={};const V={s:1,W:0,H:0};
+let stars=[],sand=[];
+function readPal(){const cs=getComputedStyle(document.documentElement);
+  ['sky-top','sky-mid','sky-low','sun','dune-far','dune-mid','dune-near','stars'].forEach(k=>pal[k]=cs.getPropertyValue('--'+k).trim());pal.stars=parseFloat(pal.stars)||0}
+function resize(){DPR=Math.min(2,window.devicePixelRatio||1);W=innerWidth;H=innerHeight;cv.width=W*DPR;cv.height=H*DPR;
+  V.s=Math.min(H/560,W/400);V.W=W/V.s;V.H=H/V.s;K=DPR*V.s;readPal();
+  stars=Array.from({length:120},()=>({x:Math.random()*V.W,y:Math.random()*V.H*.6,r:Math.random()*1.2+.3,p:Math.random()*6}));
+  sand=Array.from({length:60},()=>({x:Math.random()*V.W,y:V.H*(.3+Math.random()*.7),v:.3+Math.random()*.8,r:Math.random()*1.3+.4}))}
+addEventListener('resize',resize);
+matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change',readPal);
+
+// cor que volta ao mundo, capítulo a capítulo
+let sat=.12,satTarget=.12;
+function hexRgb(h){h=h.replace('#','');if(h.length===3)h=h.split('').map(c=>c+c).join('');const n=parseInt(h,16);return[(n>>16)&255,(n>>8)&255,n&255]}
+function tint(h,k=1){const[r,g,b]=hexRgb(h),l=.3*r+.59*g+.11*b;const f=c=>Math.round(clamp((l+(c-l)*sat)*k,0,255));return`rgb(${f(r)},${f(g)},${f(b)})`}
+
+const sprites={};
+function glowSprite(c){if(sprites[c])return sprites[c];const s=document.createElement('canvas');s.width=s.height=64;const g=s.getContext('2d');
+  const r=g.createRadialGradient(32,32,0,32,32,32);r.addColorStop(0,c);r.addColorStop(.22,c+'99');r.addColorStop(1,c+'00');g.fillStyle=r;g.fillRect(0,0,64,64);return sprites[c]=s}
+function glowAt(x,y,rad,c,a=1){if(a<=0)return;cx.globalAlpha=a;cx.drawImage(glowSprite(c),x-rad,y-rad,rad*2,rad*2);cx.globalAlpha=1}
+
+// relevo: dunas, descida para o abismo, subida para o cume
+const PTS=[[-900,400],[600,392],[1400,412],[2200,382],[2900,396],[3500,410],[4300,386],[5000,406],[5700,394],[6000,392],[6600,462],[7120,520],[7200,520],[7500,520],[7580,520],[8200,470],[9000,385],[9600,305],[10040,282],[12000,282]];
+const CHASM=[7200,7500];
+function elev(x){let i=0;while(i<PTS.length-2&&x>=PTS[i+1][0])i++;const[a,ay]=PTS[i],[b,by]=PTS[i+1];
+  const t=clamp((x-a)/(b-a),0,1),c=(1-Math.cos(Math.PI*t))/2;return lerp(ay,by,c)+Math.sin(x*.013)*3.5}
+const bridge={p:0,done:false};
+function groundAt(x){if(x>CHASM[0]&&x<CHASM[1])return bridge.done?520:null;return elev(x)}
+
+const P={x:120,y:400,vx:0,vy:0,ground:true,hold:false,jumpQ:false,charge:1,glide:false,phase:0,lastFoot:0};
+const R={x:300,y:200,ph:0};
+let camX=0,camY=0,mode='pause',T=0,glow=0,waiter=null,ctx={};
+let glyphs=[],motes=[],ghosts=[],parts=[],feet=[],stones=[];
+const GUSTS=[[7900,8180],[8480,8760],[9080,9380]];
+const inGust=x=>GUSTS.some(([a,b])=>x>a&&x<b);
+
+function resetWorld(){
+  Object.assign(P,{x:120,y:elev(120),vx:0,vy:0,ground:true,hold:false,jumpQ:false,charge:1,glide:false,phase:0,lastFoot:0});
+  Object.assign(R,{x:P.x+260,y:P.y-240});bridge.p=0;bridge.done=false;sat=satTarget=.12;glow=0;
+  camX=P.x-V.W*.28;camY=P.y-V.H*.7;parts=[];feet=[];
+  const c1=['gc','tt','gc','rd','gs','tt','tc','rt','gs','gc','rt','tt','rd','tc'],h1=[20,70,118,40,100,20,128,60,30,110,50,92,20,118];
+  const c2=['gs','tc','rt','gc','gd','ts','rc','rs','td','gt','tc','rd','gc','gs','tt','rt'],h2=[40,90,60,110,30,80,50,120,40,95,60,30,110,70,45,100];
+  glyphs=[...c1.map((k,i)=>({it:G(k),x:430+i*160,h:h1[i],ch:1,alive:true,ph:Math.random()*6})),
+          ...c2.map((k,i)=>({it:G(k),x:3200+i*135,h:h2[i],ch:2,alive:true,ph:Math.random()*6,drift:22}))];
+  motes=[];for(let x=320;x<9900;x+=210){if(Math.abs(x-2880)<160||Math.abs(x-5660)<160||(x>7050&&x<7650))continue;motes.push({x,h:55+hash(x)*105,alive:true})}
+  const lines=['Trinta viajantes passaram por aqui antes de você.','<b>15</b> tocaram a areia. <b>12</b> ouviram o vento. <b>10</b> seguiram a estrela.',
+    '<b>5</b> tocaram a areia e ouviram o vento.','<b>4</b> ouviram o vento e seguiram a estrela. <b>3</b> tocaram a areia e seguiram a estrela.','<b>2</b> viveram as três coisas.'];
+  ghosts=[7800,8260,8720,9180,9620].map((x,i)=>({x,line:lines[i],seen:false,a:1}));
+  stones=[{x:2880,lit:false},{x:5660,lit:false},{x:10080,lit:false,shrine:true}];
+}
+
+/* ---------- entrada: tocar = pular, segurar = planar ---------- */
+function press(){initAudio();if(mode!=='run')return;P.hold=true;if(P.ground)P.jumpQ=true}
+function release(){P.hold=false}
+cv.addEventListener('pointerdown',e=>{e.preventDefault();press()});
+addEventListener('pointerup',release);addEventListener('pointercancel',release);
+addEventListener('keydown',e=>{if(e.repeat)return;if([' ','ArrowUp','w','W'].includes(e.key)){e.preventDefault();press()}});
+addEventListener('keyup',e=>{if([' ','ArrowUp','w','W'].includes(e.key))release()});
+
+function burst(x,y,c,n=14,sp=2.4){for(let i=0;i<n;i++){const a=Math.random()*PI2,v=Math.random()*sp+.4;parts.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-.6,life:1,dec:.012+Math.random()*.012,c,r:5+Math.random()*7})}}
+function kick(x,y,n=6){for(let i=0;i<n;i++)parts.push({x:x+Math.random()*10-5,y,vx:-Math.random()*1.6-.2,vy:-Math.random()*1.4,life:1,dec:.03,c:'#ffe2a8',r:3+Math.random()*3,sand:true})}
+
+function runUntil(x){mode='run';return new Promise(res=>{waiter={x,res}})}
+
+function update(dt){
+  sat+=(satTarget-sat)*.012*dt;
+  if(mode==='ascend'){P.ground=false;P.glide=true;P.vy=lerp(P.vy,-1.6,.02*dt);P.y+=P.vy*dt;P.x+=.35*dt;glow=Math.min(1,glow+.0035*dt);
+    if(Math.random()<.5)parts.push({x:P.x+Math.random()*30-15,y:P.y-40+Math.random()*30,vx:Math.random()-.5,vy:.6,life:1,dec:.01,c:['#ffd98a','#8fe3d6','#ff9bb0'][Math.random()*3|0],r:4+Math.random()*5})}
+  else{
+    const run=mode==='run',slope=(elev(P.x+12)-elev(P.x-12))/24;
+    const target=run?Math.max(1.55,2.6+clamp(slope*9,-1,2.8)):0;
+    P.vx+=(target-P.vx)*.05*dt;P.x+=P.vx*dt;P.phase+=P.vx*.16*dt;
+    if(!bridge.done&&P.x>CHASM[0]-50)P.x=CHASM[0]-50;
+    const g=groundAt(P.x);
+    if(P.ground){if(g==null)P.ground=false;else P.y=g;
+      if(P.jumpQ&&run){P.vy=-8.6;P.ground=false;whoosh(.8,700,.4);kick(P.x,P.y,8)}
+      P.charge=Math.min(1,P.charge+.0016*dt);
+      if(P.x-P.lastFoot>15){P.lastFoot=P.x;feet.push({x:P.x,y:P.y,a:1,s:feet.length%2})}
+      if(P.vx>3.6&&Math.random()<.6)kick(P.x-6,P.y,1)}
+    P.jumpQ=false;
+    if(!P.ground){P.vy+=.34*dt;const gust=inGust(P.x);
+      P.glide=P.hold&&(P.vy>-.6||gust)&&(P.charge>0||gust);
+      if(P.glide){if(gust){P.vy=Math.max(P.vy-.55*dt,-4.2)}else{P.vy=Math.min(P.vy,.8);P.charge=Math.max(0,P.charge-.0042*dt)}
+        if(Math.random()<.5)parts.push({x:P.x+2,y:P.y-66,vx:-.6-Math.random(),vy:Math.random()*.6,life:1,dec:.025,c:'#ffd98a',r:3+Math.random()*3})}
+      P.y+=P.vy*dt;
+      if(g!=null&&P.y>=g&&P.vy>=0){P.y=g;P.ground=true;P.vy=0;kick(P.x,P.y,5);whoosh(.35,300,.25)}}
+    if(waiter&&P.x>=waiter.x){const w=waiter;waiter=null;mode='pause';w.res()}
+    // coleta
+    for(const gl of glyphs){if(!gl.alive)continue;const gy=glyphY(gl);
+      if(Math.abs(gl.x-P.x)<22&&Math.abs(gy-(P.y-26))<32){gl.alive=false;ctx.onPick&&ctx.onPick(gl,gy)}}
+    for(const m of motes){if(!m.alive)continue;const my=elev(m.x)-m.h;
+      if(Math.abs(m.x-P.x)<20&&Math.abs(my-(P.y-26))<30){m.alive=false;P.charge=Math.min(1,P.charge+.4);burst(m.x,my,'#ffffff',8,1.4);chime(9+(Math.random()*3|0),.25)}}
+    for(const gh of ghosts){if(!gh.seen&&P.x>gh.x-30&&mode==='run'){gh.seen=true;toast(gh.line,4600);chime(4,.5);burst(gh.x,elev(gh.x)-24,'#cfeff0',16,1.2)}}
+  }
+  feet.forEach(f=>f.a-=.0016*dt);feet=feet.filter(f=>f.a>0).slice(-140);
+  parts.forEach(p=>{p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=(p.sand?.08:-.01)*dt;p.vx*=.99;p.life-=p.dec*dt});parts=parts.filter(p=>p.life>0);
+  // companheira: uma raia de luz que nada pelo céu
+  R.ph+=.05*dt;const tx=P.x+140+Math.sin(T*.008)*70,ty=P.y-210+Math.sin(T*.013)*40-(mode==='ascend'?60:0);
+  R.x+=(tx-R.x)*.012*dt;R.y+=(ty-R.y)*.012*dt;
+  camX+=((P.x-V.W*.28)-camX)*.1*dt;camY+=((P.y-V.H*.7)-camY)*.06*dt;
+}
+const glyphY=gl=>elev(gl.x)-gl.h+(gl.drift?Math.sin(T*.03+gl.ph)*gl.drift:Math.sin(T*.04+gl.ph)*4);
+
+/* ---------- desenho ---------- */
+function layer(p){const cy0=400-V.H*.7;cx.setTransform(K,0,0,K,-camX*p*K,-(cy0+(camY-cy0)*p)*K)}
+function drawLume(x,y,o={}){
+  const glide=o.glide,ph=o.phase||0,ghost=o.ghost,a=o.alpha??1;
+  cx.save();cx.translate(x,y);cx.globalAlpha=a;
+  const sw=glide?Math.sin(T*.2)*1.5:Math.sin(ph)*2.2,fl=glide?8:0;
+  const cloak=ghost?'rgba(207,239,240,.55)':'#efe4cf',trim=ghost?'rgba(143,227,214,.6)':'#4a6f8f',hat=ghost?'rgba(207,239,240,.6)':'#7a4b2a';
+  if(!ghost){cx.fillStyle='rgba(0,0,0,.18)';cx.beginPath();cx.ellipse(3,1,13,2.4,0,0,PI2);cx.fill()}
+  // manto em sino
+  cx.fillStyle=cloak;cx.beginPath();cx.moveTo(-4,-30);cx.quadraticCurveTo(-9-fl*.4,-13,-12-fl+sw,0);
+  cx.quadraticCurveTo(0,glide?-4:2,12+fl+sw*.5,0);cx.quadraticCurveTo(9+fl*.4,-13,4,-30);cx.closePath();cx.fill();
+  cx.fillStyle=trim;cx.beginPath();cx.moveTo(-11.5-fl+sw,-3);cx.quadraticCurveTo(0,glide?-7:-1,11.5+fl+sw*.5,-3);cx.lineTo(12+fl+sw*.5,0);cx.quadraticCurveTo(0,glide?-4:2,-12-fl+sw,0);cx.fill();
+  // rosto na sombra
+  cx.fillStyle=ghost?'rgba(20,30,40,.4)':'#2a2030';cx.beginPath();cx.arc(0,-33,5,0,PI2);cx.fill();
+  cx.fillStyle='#ffe9c4';cx.fillRect(.6,-34,1.5,1.5);cx.fillRect(3.2,-34,1.5,1.5);
+  // chapéu cônico
+  cx.fillStyle=hat;cx.beginPath();cx.moveTo(-16,-36.5);cx.quadraticCurveTo(0,-41.5,16,-36.5);cx.quadraticCurveTo(0,-38,-16,-36.5);cx.fill();
+  cx.beginPath();cx.moveTo(-8,-38.5);cx.lineTo(1,-52);cx.lineTo(8,-38.5);cx.closePath();cx.fill();
+  // cajado e lanterna
+  const lx=glide?3:14,ly=glide?-66:-31+Math.sin(ph*.5)*1.5;
+  cx.strokeStyle=ghost?'rgba(207,239,240,.5)':'#5a3a22';cx.lineWidth=1.6;cx.beginPath();cx.moveTo(4,-17);cx.lineTo(lx,ly-7);cx.stroke();
+  cx.restore();
+  if(!ghost){glowAt(x+lx,y+ly,12+P.charge*24,'#ffd98a',.35+P.charge*.6);cx.fillStyle='#fff3cf';cx.beginPath();cx.arc(x+lx,y+ly,2.6,0,PI2);cx.fill()}
+}
+function drawRay(){const f=Math.sin(R.ph),x=R.x,y=R.y;
+  glowAt(x,y,46,'#cfeff0',.35);
+  cx.save();cx.translate(x,y);cx.rotate(Math.sin(R.ph*.5)*.08);cx.fillStyle='rgba(230,250,250,.85)';
+  cx.beginPath();cx.moveTo(22,0);cx.quadraticCurveTo(6,-6-f*4,-4,-24*(.6+.4*f));cx.quadraticCurveTo(-6,-6,-14,0);cx.quadraticCurveTo(-6,6,-4,24*(.6+.4*f));cx.quadraticCurveTo(6,6+f*4,22,0);cx.fill();
+  cx.strokeStyle='rgba(230,250,250,.6)';cx.lineWidth=1.4;cx.beginPath();cx.moveTo(-14,0);
+  for(let i=1;i<=10;i++)cx.lineTo(-14-i*5,Math.sin(R.ph*1.2-i*.6)*i*.7);cx.stroke();cx.restore()}
+function drawStone(s){const gy=elev(s.x);
+  if(s.shrine){cx.fillStyle=tint(pal['dune-near'],.7);
+    cx.fillRect(s.x-46,gy-120,16,120);cx.fillRect(s.x+30,gy-120,16,120);cx.fillRect(s.x-56,gy-132,112,14);
+    cx.strokeStyle=s.lit?'#ffd98a':'rgba(255,226,170,.35)';cx.lineWidth=2;cx.beginPath();cx.arc(s.x,gy-70+Math.sin(T*.03)*4,22,0,PI2);cx.stroke();
+    glowAt(s.x,gy-70,s.lit?70:40,'#ffd98a',s.lit?.8:.35);return}
+  cx.fillStyle=tint(pal['dune-near'],.7);cx.beginPath();cx.moveTo(s.x-16,gy+4);cx.lineTo(s.x-12,gy-118);cx.lineTo(s.x+3,gy-128);cx.lineTo(s.x+14,gy-112);cx.lineTo(s.x+17,gy+4);cx.fill();
+  const c=s.lit?'#ffd98a':'rgba(255,226,170,.4)';cx.strokeStyle=c;cx.lineWidth=1.6;
+  for(let i=0;i<4;i++){cx.beginPath();cx.arc(s.x+1,gy-95+i*22,5+(i%2)*2,0,PI2);cx.stroke()}
+  if(s.lit)glowAt(s.x,gy-60,60,'#ffd98a',.5+Math.sin(T*.05)*.15)}
+
+function render(){
+  cx.setTransform(K,0,0,K,0,0);
+  // céu
+  const g=cx.createLinearGradient(0,0,0,V.H*.8);g.addColorStop(0,tint(pal['sky-top']));g.addColorStop(.6,tint(pal['sky-mid']));g.addColorStop(1,tint(pal['sky-low']));
+  cx.fillStyle=g;cx.fillRect(0,0,V.W,V.H);
+  if(pal.stars>0){cx.fillStyle='#fff';for(const s of stars){cx.globalAlpha=pal.stars*(.45+.55*Math.sin(T*.02+s.p))*.85;cx.fillRect(s.x,s.y,s.r,s.r)}cx.globalAlpha=1}
+  const hz=V.H*.6-(camY-(400-V.H*.7))*.1;
+  glowAt(V.W*.3,hz,Math.min(V.W,V.H)*(.42+glow*.4),'#ffe2a8',.55+glow*.4);
+  // montanha-destino com feixe de luz
+  const prog=clamp(P.x/10100,0,1),m=.55+prog*.75,mx=V.W*.8,mb=hz+20,mh=150*m;
+  cx.fillStyle=tint(pal['dune-far'],.92);cx.globalAlpha=.85;cx.beginPath();cx.moveTo(mx-230*m,mb);cx.lineTo(mx-14,mb-mh+12);cx.lineTo(mx,mb-mh);cx.lineTo(mx+16,mb-mh+14);cx.lineTo(mx+220*m,mb);cx.fill();cx.globalAlpha=1;
+  const bw=2+glow*10,bg=cx.createLinearGradient(0,0,0,mb-mh);bg.addColorStop(0,'rgba(255,230,180,0)');bg.addColorStop(1,`rgba(255,230,180,${.4+.2*Math.sin(T*.03)+glow*.5})`);
+  cx.fillStyle=bg;cx.fillRect(mx-bw/2,0,bw,mb-mh);glowAt(mx,mb-mh,10+glow*40,'#fff3cf',.9);
+  // ruínas distantes
+  layer(.35);cx.fillStyle=tint(pal['dune-far'],.82);
+  const r0=Math.floor(camX*.35/340)-1;for(let i=r0;i<r0+V.W/340+3;i++){const h=hash(i);if(h<.4)continue;const x=i*340+h*120,ht=50+h*110;
+    cx.fillRect(x,410-ht,13,ht+80);if(h>.7){cx.fillRect(x+60,410-ht*.8,13,ht*.8+80);cx.fillRect(x-4,410-ht-8,21,8);if(h>.85)cx.fillRect(x-4,410-ht*.8-10,82,10)}}
+  // dunas médias
+  layer(.62);cx.fillStyle=tint(pal['dune-mid']);cx.beginPath();const x0=camX*.62-20;cx.moveTo(x0,2000);
+  for(let x=x0;x<=x0+V.W+40;x+=10)cx.lineTo(x,438+20*Math.sin(x*.004)+9*Math.sin(x*.011+2));cx.lineTo(x0+V.W+40,2000);cx.fill();
+  // chão
+  layer(1);const a=camX-20,b=camX+V.W+20,bot=camY+V.H+40;
+  const segs=bridge.done?[[a,b]]:[[a,Math.min(b,CHASM[0])],[Math.max(a,CHASM[1]),b]];
+  if(!bridge.done&&b>CHASM[0]&&a<CHASM[1]){const cg=cx.createLinearGradient(0,520,0,900);cg.addColorStop(0,tint(pal['dune-near'],.5));cg.addColorStop(1,'rgba(0,0,0,.9)');cx.fillStyle=cg;cx.fillRect(CHASM[0],540,CHASM[1]-CHASM[0],bot)}
+  for(const[s,e]of segs){if(e<=s)continue;cx.fillStyle=tint(pal['dune-near']);cx.beginPath();cx.moveTo(s,bot);
+    for(let x=s;x<=e;x+=6)cx.lineTo(x,bridge.done&&x>CHASM[0]&&x<CHASM[1]?560:elev(Math.min(x,e)));cx.lineTo(e,elev(e));cx.lineTo(e,bot);cx.fill();
+    cx.strokeStyle='rgba(255,226,170,.22)';cx.lineWidth=1.3;cx.beginPath();for(let x=s;x<=e;x+=6){const y=elev(x);x===s?cx.moveTo(x,y):cx.lineTo(x,y)}cx.stroke()}
+  if(bridge.p>0){const n=14,w=(CHASM[1]-CHASM[0])/n;for(let k=0;k<n;k++){if(k/n>=bridge.p)break;const px=CHASM[0]+k*w;
+    cx.fillStyle='rgba(255,226,170,.85)';cx.fillRect(px+2,519,w-4,5);glowAt(px+w/2,521,22,'#ffd98a',.5)}}
+  for(const f of feet){cx.fillStyle=`rgba(40,15,10,${.22*f.a})`;cx.beginPath();cx.ellipse(f.x,f.y+(f.s?1.5:-.5),3.6,1.3,0,0,PI2);cx.fill()}
+  stones.forEach(drawStone);
+  for(const gh of ghosts){const gy=elev(gh.x);if(gh.seen)gh.a=Math.max(0,gh.a-.004);if(gh.a>0){glowAt(gh.x,gy-26,34,'#cfeff0',.3*gh.a);drawLume(gh.x,gy-(1-gh.a)*30,{ghost:true,alpha:(.45+Math.sin(T*.04+gh.x)*.15)*gh.a,phase:0})}}
+  for(const m of motes){if(!m.alive)continue;const y=elev(m.x)-m.h+Math.sin(T*.05+m.x)*4;glowAt(m.x,y,13,'#ffffff',.75);cx.fillStyle='#fff';cx.beginPath();cx.arc(m.x,y,1.8,0,PI2);cx.fill()}
+  for(const gl of glyphs){if(!gl.alive)continue;const y=glyphY(gl),c=COL[gl.it.color];glowAt(gl.x,y,30,c,.75);
+    cx.save();cx.translate(gl.x,y);cx.rotate(Math.sin(T*.02+gl.ph)*.15);cx.fillStyle=c;cx.fill(PATHS[gl.it.shape]);cx.restore()}
+  drawLume(P.x,P.y,{glide:P.glide&&!P.ground,phase:P.phase});
+  for(const p of parts){if(p.sand){cx.globalAlpha=p.life*.6;cx.fillStyle='#f2d3a0';cx.fillRect(p.x,p.y,p.r*.6,p.r*.6);cx.globalAlpha=1}else glowAt(p.x,p.y,p.r*p.life+2,p.c,p.life)}
+  drawRay();
+  // primeiro plano: areia e vento
+  cx.setTransform(K,0,0,K,0,0);const gust=inGust(P.x)&&mode==='run';
+  for(const s of sand){s.x+=(s.v+P.vx*.9)*(gust?2.2:1);s.y+=Math.sin(T*.02+s.x*.01)*.2;if(s.x>V.W+10){s.x=-10;s.y=V.H*(.3+Math.random()*.7)}
+    cx.globalAlpha=(gust?.55:.25)+s.r*.12;cx.fillStyle='#ffe6be';cx.fillRect(s.x,s.y,s.r*(gust?9:2.4),s.r*.7)}
+  cx.globalAlpha=1;
+  if(glow>0){cx.fillStyle=`rgba(255,240,210,${glow*.55})`;cx.fillRect(0,0,V.W,V.H)}
+}
+let last=performance.now();
+function frame(now){const dt=Math.min(2.5,(now-last)/16.67);last=now;T+=dt;update(dt);render();requestAnimationFrame(frame)}
+
+/* ================= narração e controles ================= */
+async function narrate(lines,{title=false,btn='continuar'}={}){
+  const n=$('#narration'),t=$('#ntext'),b=$('#nbtn');hud('');
+  n.classList.toggle('title',title);t.innerHTML='';b.textContent=btn;b.style.opacity=0;b.disabled=true;n.classList.add('on');
+  let hurry=false;n.onclick=e=>{if(e.target!==b)hurry=true};await sleep(500);
+  for(const L of lines){const p=document.createElement('p');p.innerHTML=L;t.appendChild(p);await sleep(40);p.classList.add('in');
+    if(!hurry)await sleep(Math.min(2000,700+L.replace(/<[^>]+>/g,'').length*18))}
+  b.disabled=false;b.style.opacity=1;b.focus({preventScroll:true});
+  await new Promise(res=>{b.onclick=()=>{initAudio();b.onclick=null;n.onclick=null;n.classList.remove('on');setTimeout(res,800)}})}
+function walkButton(label='seguir caminho'){return new Promise(res=>{const b=document.createElement('button');b.className='walk';b.textContent=label;b.onclick=()=>{controls.innerHTML='';res()};controls.appendChild(b)})}
+function choose(opts,correct,hint){return new Promise(res=>{controls.innerHTML='';
+  opts.forEach(o=>{const b=document.createElement('button');b.className='stone';b.textContent=o;
+    b.onclick=()=>{if(o===correct){b.classList.add('right');cascade();setTimeout(()=>{controls.innerHTML='';res()},1100)}else{b.classList.add('wrong');soft();setPrompt(hint)}};
+    controls.appendChild(b)})})}
+function setupStage(){svg.innerHTML='';const d=el('defs',{},svg);
+  const f=el('filter',{id:'glow',x:'-100%',y:'-100%',width:'300%',height:'300%'},d);
+  el('feGaussianBlur',{stdDeviation:'3.2',result:'b'},f);const m=el('feMerge',{},f);el('feMergeNode',{in:'b'},m);el('feMergeNode',{in:'SourceGraphic'},m);
+  const rg=el('radialGradient',{id:'pool'},d);el('stop',{offset:'0%','stop-color':'#ffd98a','stop-opacity':'.2'},rg);el('stop',{offset:'100%','stop-color':'#ffd98a','stop-opacity':'0'},rg)}
+function glyph(it,parent=svg){const g=el('g',{class:'glyph'},parent),b=el('g',{class:'bob'},g);b.style.animationDelay=(-Math.random()*4.5)+'s';
+  el('circle',{r:21,fill:COL[it.color],opacity:.13},b);el('path',{d:shapePath(it.shape),fill:COL[it.color],filter:'url(#glow)'},b);it.g=g;return g}
+function place(g,x,y,s=1){g.style.transform=`translate(${x}px,${y}px) scale(${s})`}
+function bloom(){satTarget=Math.min(1,satTarget+.22);for(const c of Object.values(COL))burst(P.x,P.y-40,c,14,3);cascade()}
+
+/* ================= I · cardinalidade ================= */
+async function chapter1(){
+  const inA={},order=[];let touched=0;
+  const draw=()=>hud(`<div class="rule">Recolha as luzes do caminho</div><div class="line">A = { ${order.map(k=>icon(inA[k])).join('')} }</div><div class="line">|A| = <b>${order.length}</b>&nbsp;&nbsp;&nbsp;luzes tocadas: ${touched}</div>`);
+  ctx={onPick:(gl,gy)=>{touched++;const it=gl.it,c=COL[it.color];P.charge=Math.min(1,P.charge+.25);
+    if(inA[it.key]){burst(gl.x,gy,c,6,1);chime(1,.5);toast(`${describe(it)} já está em <b>A</b>. Não conta de novo.`,2200)}
+    else{inA[it.key]=it;order.push(it.key);burst(gl.x,gy,c,18,2.6);chime(4+order.length,.9);toast(`${describe(it)}: um elemento novo em <b>A</b>.`,1800)}
+    draw()}};
+  draw();toast('Toque para pular. Segure no ar para planar.',4200);
+  await runUntil(2830);ctx={};
+  const n=order.length,t=touched;
+  await narrate(n===t?[`Você recolheu ${t} luzes, e nenhuma se repetia.`,'Ainda assim: muitas das que você deixou passar eram iguais.','A <em>cardinalidade</em> de um conjunto é quantos elementos distintos ele contém.']
+    :[`Você tocou ${t} luzes.`,`Mas <em>A</em> guarda apenas ${n}.`,'A <em>cardinalidade</em> de um conjunto é quantos elementos distintos ele contém.',`<span class="f">|A| = ${n}</span>`,'Repetir não acrescenta. O que já está, já está.']);
+  setChapter('I','O monólito','agora, sem tocar');setupStage();
+  const B=[G('gs'),G('gs'),G('tc'),G('rd'),G('tc'),G('gs'),G('rt'),G('td')];
+  el('circle',{cx:200,cy:185,r:150,class:'ring'},svg);txt(70,60,'B');
+  shuffle(B).forEach((it,i)=>{glyph(it);place(it.g,95+(i%4)*70,150+Math.floor(i/4)*72)});
+  setPrompt('O monólito mostra oito luzes do conjunto <b>B</b>. Qual é <b>|B|</b>?');showUI(true);
+  await choose([8,5,4,6],5,'Conte cada forma-cor uma única vez: luzes iguais são o mesmo elemento.');
+  setPrompt('<b>|B| = 5</b>. Oito luzes, cinco elementos.');await walkButton();showUI(false);
+  stones[0].lit=true;bloom();await sleep(900);
+}
+
+/* ================= II · interseção em movimento + Venn ================= */
+async function chapter2(){
+  await narrate(['Adiante, as luzes dançam no ar.','Agora, só algumas pertencem ao seu caminho.','<span class="f">A: tons quentes</span>','<span class="f">B: formas com pontas</span>','Recolha apenas o que está em <em>A</em> e em <em>B</em> ao mesmo tempo.']);
+  let ok=0;const got=[];
+  const draw=()=>hud(`<div class="rule">Recolha só A ∩ B: quente <em>e</em> com pontas</div><div class="line">${got.map(it=>icon(it)).join('')}</div><div class="line">no seu caminho: <b>${ok}</b></div>`);
+  ctx={onPick:(gl,gy)=>{const it=gl.it,c=COL[it.color];
+    if(warm(it)&&sharp(it)){ok++;got.push(it);burst(gl.x,gy,c,18,2.6);chime(5+(ok%6),.9);P.charge=Math.min(1,P.charge+.3);toast(`${describe(it)} está em <b>A ∩ B</b>.`,1600)}
+    else{burst(gl.x,gy,'#ffffff',10,3);soft();P.charge=Math.max(0,P.charge-.35);
+      toast(`${describe(it)}: ${warm(it)?'é':'não é'} quente e ${sharp(it)?'tem':'não tem'} pontas. ${warm(it)?'Só em <b>A</b>.':sharp(it)?'Só em <b>B</b>.':'Fora dos dois.'}`,2600)}
+    draw()}};
+  draw();await runUntil(5610);ctx={};
+  setChapter('II','Dois círculos','onde mora cada luz?');setupStage();showUI(true);
+  const A={x:150,y:172,r:92},Bc={x:250,y:172,r:92},U={x:12,y:22,w:376,h:300};
+  el('rect',{x:U.x,y:U.y,width:U.w,height:U.h,rx:26,class:'univ'},svg);txt(34,48,'U','lbl s');
+  el('circle',{cx:A.x,cy:A.y,r:A.r,class:'ca'},svg);el('circle',{cx:Bc.x,cy:Bc.y,r:Bc.r,class:'cb'},svg);
+  txt(96,300,'A  tons quentes','lbl s');txt(306,300,'B  tem pontas','lbl s');
+  const list=shuffle([G('gc'),G('rt'),G('ts'),G('tc'),G('gs'),G('rc'),G('td'),G('gd')]);
+  const where=it=>{const a=warm(it),b=sharp(it);return a&&b?'mora em <b>A ∩ B</b>, onde os círculos se tocam':a?'mora só em <b>A</b>':b?'mora só em <b>B</b>':'fica fora dos dois círculos, mas dentro de <b>U</b>'};
+  for(const it of list){await new Promise(res=>{
+    const g=glyph(it);g.classList.add('drag');g.style.opacity=0;const home={x:200,y:362};place(g,home.x,home.y,1.2);setTimeout(()=>g.style.opacity=1,50);
+    setPrompt(`${describe(it)}. Arraste para onde ela pertence.`);let drag=false;
+    g.addEventListener('pointerdown',e=>{drag=true;g.setPointerCapture(e.pointerId);g.classList.add('held');initAudio()});
+    g.addEventListener('pointermove',e=>{if(!drag)return;const p=pt(e);place(g,p.x,p.y,1.2)});
+    const drop=e=>{if(!drag)return;drag=false;g.classList.remove('held');const p=pt(e);
+      const inU=p.x>U.x&&p.x<U.x+U.w&&p.y>U.y&&p.y<U.y+U.h,inA=dist(p,A)<A.r,inB=dist(p,Bc)<Bc.r;
+      if(inU&&inA===warm(it)&&inB===sharp(it)){place(g,p.x,p.y,1);g.style.pointerEvents='none';chime(4+(Math.random()*5|0),.9);res()}
+      else{soft();place(g,home.x,home.y,1.2);setPrompt(`${describe(it)}: ${warm(it)?'é':'não é'} de tom quente e ${sharp(it)?'tem':'não tem'} pontas. Ela ${where(it)}.`)}};
+    g.addEventListener('pointerup',drop);g.addEventListener('pointercancel',drop)})}
+  setPrompt('Todas as luzes encontraram seu lugar.');await sleep(1300);showUI(false);
+  stones[1].lit=true;bloom();
+  await narrate(['O que está em <em>pelo menos um</em> círculo é a união.<br><span class="f">A ∪ B</span>','O que está nos <em>dois ao mesmo tempo</em> é a interseção.<br><span class="f">A ∩ B</span>',
+    'Aqui, |A| = 5 e |B| = 5.','Somados, dez. Mas dentro dos círculos há apenas sete luzes.','As três do meio foram contadas duas vezes.']);
+}
+
+/* ================= III · deslizar e a ponte ================= */
+function spiral(c0,cy0,i,dir){const a=i*2.4,r=11*Math.sqrt(i+.5);return{x:c0+dir*Math.abs(Math.cos(a))*r*.9-dir*4,y:cy0+Math.sin(a)*r*1.25}}
+function bridgeRound({a,b,u,start}){return new Promise(res=>{
+  setupStage();svg.classList.add('noanim');const cy=170,Rr=88,max=Math.min(a,b);
+  const gA=el('g',{class:'mov'},svg),gB=el('g',{class:'mov'},svg);
+  el('circle',{cx:0,cy,r:Rr,class:'ca'},gA);el('circle',{cx:0,cy,r:Rr,class:'cb'},gB);
+  txt(0,cy-Rr-12,'A','lbl',gA);txt(0,cy-Rr-12,'B','lbl',gB);txt(200,cy+Rr+30,'A ∩ B','lbl s');
+  const dA=[...Array(a)].map(()=>el('circle',{r:5.5,class:'dot da',filter:'url(#glow)'},svg));
+  const dB=[...Array(b)].map(()=>el('circle',{r:5.5,class:'dot db',filter:'url(#glow)'},svg));
+  const lens=(j,k)=>({x:200,y:cy+(j-(k-1)/2)*19});
+  controls.innerHTML='';const s=document.createElement('input');s.type='range';s.min=0;s.max=max;s.step=1;s.value=start;s.setAttribute('aria-label','Aproximar os círculos');
+  controls.appendChild(s);const nb=document.createElement('div');nb.style.width='100%';controls.appendChild(nb);let solved=false;
+  function upd(k){const d=k===0?192:172-k*9,xA=200-d/2,xB=200+d/2;
+    gA.style.transform=`translate(${xA}px,0)`;gB.style.transform=`translate(${xB}px,0)`;
+    dA.forEach((c,i)=>{const p=i<a-k?spiral(xA-36,cy,i,-1):lens(i-(a-k),k);c.style.transform=`translate(${p.x}px,${p.y}px)`});
+    dB.forEach((c,i)=>{const p=i<b-k?spiral(xB+36,cy,i,1):lens(i-(b-k),k);c.style.transform=`translate(${p.x}px,${p.y}px)`});
+    const sum=a+b-k;setPrompt(`<span class="eq">|A| + |B| − |A ∩ B| = ${a} + ${b} − <b>${k}</b> = <b>${sum}</b></span><span class="goal">a ponte pede |A ∪ B| = ${u}</span>`);
+    if(sum===u&&!solved){solved=true;cascade();nb.innerHTML='';const w=document.createElement('button');w.className='walk';w.textContent='firmar a ponte';w.style.marginTop='6px';
+      w.onclick=()=>{controls.innerHTML='';svg.classList.remove('noanim');res()};nb.appendChild(w)}
+    else if(sum!==u&&solved){solved=false;nb.innerHTML=''}}
+  s.oninput=()=>{upd(+s.value);chime(2+ +s.value,.35)};upd(start);requestAnimationFrame(()=>requestAnimationFrame(()=>svg.classList.remove('noanim')))})}
+async function chapter3(){
+  await narrate(['O chão começa a descer.','Não lute contra a areia.','Deixe-se deslizar.']);
+  hud('<div class="rule">Deslize pela duna</div><div class="line">recolha luzes brancas para planar mais longe</div>');
+  await runUntil(CHASM[0]-50);
+  await narrate(['Um abismo.','Para cruzá-lo, a ponte precisa ter exatamente o tamanho certo.','<span class="f">|A ∪ B| = |A| + |B| − |A ∩ B|</span>']);
+  setChapter('III','A ponte','o que é contado duas vezes');showUI(true);
+  const rounds=[{a:7,b:5,u:9,start:0,s:'o que é contado duas vezes'},{a:6,b:6,u:8,start:0,s:'de novo, com outras luzes'},{a:4,b:5,u:9,start:4,s:'e se nada for compartilhado?'}];
+  for(const r of rounds){$('#subtitle').textContent=r.s;await bridgeRound(r);bridge.p=Math.min(.99,bridge.p+.33);chime(7,.7)}
+  setupStage();$('#subtitle').textContent='a última tábua';
+  txt(200,140,'|A| = 10','num');txt(200,172,'|B| = 8','num');txt(200,204,'|A ∩ B| = 6','num');txt(200,256,'|A ∪ B| = ?','lbl');
+  setPrompt('Quantos elementos há na união?');
+  await choose([18,12,24,4],12,'Some |A| e |B|, depois retire o que foi contado duas vezes: a interseção.');
+  setPrompt('<b>10 + 8 − 6 = 12</b>');await walkButton('atravessar');showUI(false);
+  bridge.p=1;bridge.done=true;bloom();
+  await narrate(['Quando nada é compartilhado, a interseção é vazia.','<span class="f">A ∩ B = ∅</span>','E a união é simplesmente a soma.']);
+}
+
+/* ================= IV · subida com vento e ecos ================= */
+async function chapter4(){
+  await narrate(['O caminho sobe para o cume.','O vento sopra forte aqui. No ar, segure: ele te ergue.','E há ecos de quem passou antes.']);
+  hud('<div class="rule">Escute os ecos dos viajantes</div><div class="line">cada eco guarda um número</div>');
+  await runUntil(10020);
+  await narrate(['Quantos viveram ao menos uma das três coisas?','<span class="f">A areia</span> <span class="f">V vento</span> <span class="f">E estrela</span>']);
+  setChapter('IV','Três luzes','cada lugar, uma única vez');setupStage();showUI(true);
+  const C=[{x:150,y:148,c:'ca',n:'A',lx:62,ly:62,t:'areia'},{x:250,y:148,c:'cb',n:'V',lx:338,ly:62,t:'vento'},{x:200,y:235,c:'cc',n:'E',lx:200,ly:372,t:'estrela'}];
+  C.forEach(o=>{el('circle',{cx:o.x,cy:o.y,r:90,class:o.c},svg);txt(o.lx,o.ly,`${o.n}  ${o.t}`,'lbl s')});
+  const pos={1:[108,118],2:[292,118],4:[200,300],3:[200,104],5:[146,214],6:[254,214],7:[200,180]},badges={};
+  for(const m in pos){const g=el('g',{class:'badge zero'},svg);el('circle',{cx:pos[m][0],cy:pos[m][1],r:15},g);const t=el('text',{x:pos[m][0],y:pos[m][1]},g);t.textContent='×0';badges[m]={g,t}}
+  const terms=[{m:1,s:1,l:'|A|',v:15},{m:2,s:1,l:'|V|',v:12},{m:4,s:1,l:'|E|',v:10},{m:3,s:-1,l:'|A∩V|',v:5},{m:6,s:-1,l:'|V∩E|',v:4},{m:5,s:-1,l:'|A∩E|',v:3},{m:7,s:1,l:'|A∩V∩E|',v:2}];
+  controls.innerHTML='';
+  await new Promise(res=>{
+    function upd(){let all=true;
+      for(const m in pos){let k=0;terms.forEach(t=>{if(t.on&&(m&t.m)===t.m)k+=t.s});const b=badges[m];b.t.textContent='×'+k;
+        b.g.setAttribute('class','badge '+(k===1?'ok':k===0?'zero':k<0?'neg':'over'));if(k!==1)all=false}
+      const on=terms.filter(t=>t.on);let sum=0,ex='';on.forEach((t,i)=>{sum+=t.s*t.v;ex+=(i===0?(t.s<0?'−':''):(t.s<0?' − ':' + '))+t.v});
+      setPrompt(on.length?`<span class="eq">${ex} = <b>${sum}</b></span><span class="goal">${all?'cada região, contada uma única vez':'cada número mostra quantas vezes a região está sendo contada'}</span>`
+        :'Toque nos termos para somá-los ou subtraí-los. Faça cada região ser contada <b>exatamente uma vez</b>.');return all}
+    terms.forEach(t=>{const b=document.createElement('button');b.className='term';b.innerHTML=`${t.s>0?'+':'−'} ${t.l}<small>${t.v}</small>`;
+      b.onclick=()=>{t.on=!t.on;b.classList.toggle('on',t.on);chime(t.s>0?6:3,.6);if(upd()){controls.querySelectorAll('button').forEach(x=>x.disabled=true);cascade();setTimeout(res,2200)}};controls.appendChild(b)});
+    upd()});
+  showUI(false);
+  await narrate(['Somar os três conta o meio vezes demais.','Subtrair os pares retira demais.','Devolver o centro equilibra tudo.','<span class="f">|A ∪ V ∪ E| = 27</span>',
+    'Isso é o princípio da inclusão e exclusão:<br><em>incluir, excluir, incluir de novo,</em><br>até que cada coisa seja contada uma única vez.']);
+  setupStage();setChapter('IV','O santuário','o que ficou de fora');showUI(true);
+  el('rect',{x:30,y:60,width:340,height:240,rx:28,class:'univ'},svg);txt(56,90,'U','lbl s');
+  el('circle',{cx:200,cy:180,r:85,class:'ring'},svg);txt(200,186,'A ∪ V ∪ E','lbl');txt(200,330,'|U| = 30','num');
+  setPrompt('Trinta viajantes cruzaram o deserto. Quantos não viveram nenhuma das três coisas?');
+  await choose([3,27,0,57],3,'Tudo o que não está na união fica no resto de U: 30 menos a união.');
+  setPrompt('<b>30 − 27 = 3</b>. O complemento também é um conjunto.');await walkButton('entrar na luz');showUI(false);
+  stones[2].lit=true;satTarget=1;bloom();
+}
+
+/* ================= jornada ================= */
+async function journey(){
+  showUI(false);hud('');resetWorld();mode='pause';
+  await narrate(['<h1>Travessia</h1>','<em>uma jornada pelos conjuntos</em>','<small>toque para pular, segure para planar</small>'],{title:true,btn:'começar'});
+  await narrate(['O deserto perdeu suas cores.','Elas estão guardadas nas luzes do caminho.','Siga a montanha.']);
+  await chapter1();await chapter2();await chapter3();await chapter4();
+  mode='ascend';whoosh(1,400,2.5);await sleep(5200);
+  await narrate(['Você chegou ao alto.','<span class="f">|A| conta o que é distinto</span>','<span class="f">A ∩ B guarda o que é comum</span>','<span class="f">A ∪ B reúne sem repetir</span>',
+    'Contar bem é não esquecer ninguém,<br>e não contar ninguém duas vezes.'],{btn:'recomeçar a travessia'});
+  journey();
+}
+resize();resetWorld();requestAnimationFrame(frame);journey();
+</script>
+</body>
+</html>

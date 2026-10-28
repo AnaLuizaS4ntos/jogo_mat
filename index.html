@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Travessia - Uma Jornada pelos Conjuntos</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+  <!-- Mundo 2D em Pixel Art -->
+  <canvas id="world" aria-label="Cenário do jogo Travessia"></canvas>
+
+  <!-- HUD Superior -->
+  <header id="top-bar">
+    <div id="hud-panel" class="pixel-box">
+      <div class="hud-header">
+        <span id="hud-stage-tag" class="hud-stage-tag">FASE I: CARDINALIDADE</span>
+        <div id="hud-hearts" class="hud-hearts" title="Energia">♥♥♥</div>
+      </div>
+      <div id="hud-goal" class="hud-goal">Meta do Portão: Colete <em>5 cristais distintos</em></div>
+      <div id="hud-bag" class="hud-bag">A = { }</div>
+      <div id="hud-status" class="hud-status">
+        <span>Cardinalidade <b>|A| = 0 / 5</b></span>
+      </div>
+    </div>
+
+    <div id="top-actions">
+      <select id="stage-select" class="pixel-btn" aria-label="Selecionar Fase">
+        <option value="1">FASE 1: |A|</option>
+        <option value="2">FASE 2: A ∩ B</option>
+        <option value="3">FASE 3: A ∪ B</option>
+        <option value="4">FASE 4: 3 CONJ.</option>
+      </select>
+      <button id="btn-sound" class="pixel-btn" type="button">SOM: ON</button>
+    </div>
+  </header>
+
+  <!-- Caderno de Pistas da Fase 4 -->
+  <aside id="notes-box" class="pixel-box hidden">
+    <h4>CADERNO DA CARTÓGRAFA</h4>
+    <ul id="notes-list"></ul>
+  </aside>
+
+  <!-- Notificação Rápida de Coleta -->
+  <div id="toast" role="status" aria-live="polite"></div>
+
+  <!-- Controles Direcionais (Touch / Mouse) e Botão de Ação -->
+  <div id="controls-bar">
+    <div class="touch-group">
+      <button id="btn-left" class="ctrl-pad-btn" type="button" aria-label="Andar para a esquerda">◀</button>
+      <button id="btn-right" class="ctrl-pad-btn" type="button" aria-label="Andar para a direita">▶</button>
+    </div>
+    <div class="touch-group">
+      <button id="btn-interact" class="ctrl-pad-btn action-btn hidden" type="button">ABRIR ALTAR [E]</button>
+      <button id="btn-jump" class="ctrl-pad-btn" type="button" style="width:auto;padding:0 14px;font-size:11px;">PULAR
+        ▲</button>
+    </div>
+  </div>
+
+  <!-- Tela Inicial (Título Indie 2D) -->
+  <section id="title-screen">
+    <div class="title-card pixel-box">
+      <span class="title-badge">AVENTURA &amp; MATEMÁTICA 2D</span>
+      <h1>TRAVESSIA</h1>
+      <h2>Uma Jornada pelos Conjuntos</h2>
+
+      <div class="controls-grid">
+        <div class="ctrl-item"><kbd>A</kbd><kbd>D</kbd> ou <kbd>◀</kbd><kbd>▶</kbd><br>Andar Esq. / Dir.</div>
+        <div class="ctrl-item"><kbd>ESPAÇO</kbd> ou <kbd>W</kbd><br>Pular / Segurar p/ Planar</div>
+        <div class="ctrl-item"><kbd>E</kbd> ou <kbd>ENTER</kbd><br>Interagir com Altares</div>
+      </div>
+
+      <button id="btn-start-game" class="pixel-btn primary" type="button" style="font-size:13px;padding:14px 24px;">
+        ▶ INICIAR TRAVESSIA
+      </button>
+    </div>
+  </section>
+
+  <!-- Caixa de Diálogo estilo RPG -->
+  <section id="dialog-overlay" class="hidden" role="dialog" aria-live="polite">
+    <div id="dialog-box" class="pixel-box">
+      <div class="dialog-portrait">
+        <canvas id="dialog-portrait-cv" width="64" height="64"></canvas>
+      </div>
+      <div class="dialog-content">
+        <div id="dialog-speaker" class="dialog-speaker">Leo (Explorador)</div>
+        <div id="dialog-text" class="dialog-text"></div>
+        <div class="dialog-footer">
+          <span class="dialog-hint">[ESPAÇO] ou [ENTER] para avançar</span>
+          <button id="dialog-next" class="pixel-btn primary" type="button">PRÓXIMO ▶</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Modal de Desafio dos Altares -->
+  <section id="puzzle-modal" class="hidden" role="dialog" aria-live="polite">
+    <div class="puzzle-window pixel-box">
+      <div class="puzzle-top">
+        <div class="puzzle-title-group">
+          <div id="puzzle-chapter">ALTAR I</div>
+          <div id="puzzle-subtitle">Desafio</div>
+        </div>
+      </div>
+
+      <div id="stage-wrap">
+        <svg id="stage" viewBox="0 0 400 400" aria-label="Tabuleiro do Enigma"></svg>
+      </div>
+
+      <p id="puzzle-prompt"></p>
+      <div id="puzzle-controls"></div>
+    </div>
+  </section>
+
+  <!-- Scripts Organizados -->
+  <script src="js/audio.js"></script>
+  <script src="js/sprites.js"></script>
+  <script src="js/puzzles.js"></script>
+  <script src="js/game.js"></script>
+</body>
+
+</html>
