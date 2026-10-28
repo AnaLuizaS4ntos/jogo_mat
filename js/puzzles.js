@@ -117,10 +117,15 @@ function runDialog(lines) {
     function cleanup() {
       overlay.classList.add('hidden');
       nextBtn.onclick = null;
+      $('#dialog-box').onclick = null;
       window.removeEventListener('keydown', onKey);
     }
 
-    nextBtn.onclick = advance;
+    nextBtn.onclick = e => {
+      e.stopPropagation();
+      advance();
+    };
+    $('#dialog-box').onclick = () => advance();
     window.addEventListener('keydown', onKey);
     showLine();
   });
@@ -148,8 +153,8 @@ function createSvgRelic(it, parent = $('#stage')) {
   const g = svgEl('g', { class: 'drag-glyph' }, parent);
   const c = COL[it.color];
 
-  // Área de toque invisível
-  svgEl('circle', { r: 21, fill: 'transparent' }, g);
+  // Área de toque invisível ampliada para dedos no mobile
+  svgEl('circle', { r: 26, fill: 'transparent' }, g);
 
   // Corpo principal da forma com contorno escuro limpo
   svgEl('path', {

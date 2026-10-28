@@ -127,7 +127,9 @@ function resize() {
   H = window.innerHeight;
   cv.width = W * DPR;
   cv.height = H * DPR;
-  V.s = Math.min(H / 540, W / 420);
+  const minWorldW = W < 640 ? 500 : 420;
+  const minWorldH = H < 500 ? 480 : 540;
+  V.s = Math.min(H / minWorldH, W / minWorldW);
   V.W = W / V.s;
   V.H = H / V.s;
   K = DPR * V.s;
@@ -141,6 +143,7 @@ function resize() {
   }));
 }
 window.addEventListener('resize', resize);
+window.addEventListener('orientationchange', () => setTimeout(resize, 120));
 
 function spawnBurst(x, y, color, count = 12) {
   for (let i = 0; i < count; i++) {
@@ -1128,6 +1131,9 @@ function bindPadButton(id, keyName) {
   if (!btn) return;
   const press = e => {
     e.preventDefault();
+    if (e.pointerId != null && btn.setPointerCapture) {
+      try { btn.setPointerCapture(e.pointerId); } catch (_) {}
+    }
     SFX.init();
     if (keyName === 'jump' && !keys.jump) keys.jumpJustPressed = true;
     keys[keyName] = true;
@@ -1140,8 +1146,9 @@ function bindPadButton(id, keyName) {
   };
   btn.addEventListener('pointerdown', press);
   btn.addEventListener('pointerup', release);
-  btn.addEventListener('pointerleave', release);
   btn.addEventListener('pointercancel', release);
+  btn.addEventListener('lostpointercapture', release);
+  btn.addEventListener('contextmenu', e => e.preventDefault());
 }
 
 bindPadButton('btn-left', 'left');
@@ -1151,6 +1158,20 @@ bindPadButton('btn-jump', 'jump');
 document.getElementById('btn-interact')?.addEventListener('click', () => {
   SFX.init();
   triggerAltarInteraction();
+});
+
+// No mobile, permite tocar diretamente próximo ao altar na tela caso esteja ao alcance
+cv.addEventListener('pointerdown', e => {
+  if (gameMode !== 'play') return;
+  const nearAltar = altars.find(a => !a.solved && Math.abs(P.x - a.x) < 62);
+  if (nearAltar) {
+    const rect = cv.getBoundingClientRect();
+    const worldX = camX + (e.clientX - rect.left) / V.s;
+    if (Math.abs(worldX - nearAltar.x) < 75) {
+      SFX.init();
+      triggerAltarInteraction();
+    }
+  }
 });
 
 document.getElementById('btn-sound')?.addEventListener('click', e => {
