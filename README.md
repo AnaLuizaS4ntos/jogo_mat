@@ -34,6 +34,16 @@ E ou ENTER : Interagir com Altares, ler placas e avançar diálogos.
 
 Objetivo Geral: Controle o explorador Leo, interaja com os Altares do Conhecimento espalhados pelo mapa e colete os cristais corretos baseando-se nas regras matemáticas ditadas pelo Caderno da Cartógrafa.
 
+**📋 Melhorias Implementadas Pós-Entrevistas (Feedback Pedagógico)**
+
+A partir da avaliação pedagógica realizada com os professores entrevistados (Paulo Henrique, Raquel Jucá e David Martins), foram implementadas as seguintes melhorias no jogo:
+
+- **Tutorial Inicial e Guia Passo a Passo na Tela:** Inclusão de um tutorial inicial rápido explicando movimentação, coleta de cristais e interação com os altares, além de uma barra de orientação contínua no HUD (`🧭 Guia`) que acompanha cada etapa das 4 fases.
+- **Legenda e Explicação dos Contadores (`0x`, `1x`, `2x`):** Adição de um diálogo introdutório e de uma legenda visual colorida fixa no Altar IV explicando a função dos marcadores (`0x` = não contado, `1x` = contado 1 vez/correto, `2x/3x` = contado repetido, `-1x` = descontado demais), além de explicações ao clicar em cada marcador.
+- **Botão de Dicas Matemáticas (`💡 DICA`):** Disponibilização de dicas matemáticas contextualizadas em todos os desafios dos altares e feedback explicativo automático sempre que o jogador comete um erro.
+- **Exemplos do Cotidiano e Reforço do Complementar:** Inclusão de situações reais envolvendo preferências musicais e esportivas, comparação direta entre União ($A \cup B$) e Interseção ($A \cap B$) e destaque visual para os elementos do conjunto complementar (dentro do Universo $U$, mas fora dos conjuntos trabalhados).
+- **Resumo por Fase e Relatório do Professor (`📊 RELATÓRIO`):** Exibição de um resumo pedagógico ao final de cada fase (objetivo concluído, conceito, notação e exemplo cotidiano) e um relatório completo com o registro de fases concluídas, tentativas, acertos e erros para acompanhamento do professor.
+
 Tecnologias Utilizadas
 
 Este projeto foi construído do zero (Vanilla), sem o uso de engines pesadas, focando em performance para navegadores:
