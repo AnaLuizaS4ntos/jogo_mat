@@ -2,7 +2,7 @@ Travessia: Uma Jornada pelos Conjuntos
 
 Travessia é um jogo web 2D interativo com estética pixel art focado no ensino prático de Teoria dos Conjuntos. Através da exploração, resolução de quebra-cabeças em altares e diálogos de RPG, os jogadores aprendem conceitos matemáticos de forma lúdica e visual.
 
-**Jogue agora: https://jogomat-production.up.railway.app/ 
+**Jogue agora: [travessiamat.netlify.app](https://travessiamat.netlify.app/)
 
 **Contexto Acadêmico**
 
@@ -38,7 +38,7 @@ Tecnologias Utilizadas
 
 Este projeto foi construído do zero (Vanilla), sem o uso de engines pesadas, focando em performance para navegadores:
 
-HTML5: Estrutura e elemento <canvas> para renderização 2D.
+HTML5: Estrutura e elemento <canvas></canvas> para renderização 2D.
 
 CSS3: Estilização da interface de usuário (HUD), modais, tipografia pixelada e layout responsivo.
 
@@ -58,13 +58,11 @@ Se desejar baixar o código e rodar na sua máquina, siga os passos:
 
 Clone este repositório:
 
-git clone https://github.com/AnaLuizaS4ntos/jogo_mat 
-
+git clone https://github.com/AnaLuizaS4ntos/jogo_mat
 
 Acesse a pasta do projeto:
 
 cd travessia-jogo-matematico
-
 
 Abra o arquivo index.html em seu navegador web preferido ou utilize uma extensão como o Live Server no VS Code para iniciar um servidor local.
 
@@ -72,7 +70,7 @@ Abra o arquivo index.html em seu navegador web preferido ou utilize uma extensã
 
 Ana Luíza Dos Santos Souza (2520530)
 
-Ian Pereira  (2421344) 
+Ian Pereira  (2421344)
 
 Davi Barros Alves (2520357)
 

@@ -250,6 +250,7 @@ function resetWorld() {
   state.ch1TotalTouched = 0;
   state.ch2Got = [];
   state.ch4Clues = 0;
+  if (typeof PEDAGOGY !== 'undefined') PEDAGOGY.reset();
 
   Object.assign(P, {
     x: 160,
@@ -301,6 +302,7 @@ function updateHUD() {
   const goalEl = document.getElementById('hud-goal');
   const bagEl = document.getElementById('hud-bag');
   const statusEl = document.getElementById('hud-status');
+  const guideEl = document.getElementById('guide-banner');
 
   const heartsStr = Array.from({ length: 3 }, (_, i) =>
     `<span style="color:${i < P.hearts ? '#ff5252' : '#46375e'}">♥</span>`
@@ -310,7 +312,7 @@ function updateHUD() {
   const ready = isAltarReady(currentChapter);
 
   if (currentChapter === 1) {
-    stageTag.textContent = 'FASE I: CARDINALIDADE';
+    stageTag.textContent = 'FASE I: CARDINALIDADE (|A|)';
     goalEl.innerHTML = `Meta do Portão: Colete <em>5 cristais distintos</em> para o conjunto <b>A</b>`;
     bagEl.innerHTML = `<span>A = {</span>` +
       state.ch1Order.map(k => `<span class="hud-bag-item">${icon(state.ch1Bag[k], 18)}</span>`).join('') +
@@ -318,6 +320,17 @@ function updateHUD() {
     statusEl.innerHTML =
       `<span>Cardinalidade <b>|A| = ${state.ch1Order.length} / ${state.ch1Goal}</b> (Tocados: ${state.ch1TotalTouched})</span>` +
       (ready ? `<span class="ready-badge">PORTÃO PRONTO!</span>` : '');
+
+    if (guideEl) {
+      if (state.ch1Order.length === 0) {
+        guideEl.innerHTML = `🧭 <b>Tutorial (1/3 — Movimento):</b> Use <kbd>A</kbd><kbd>D</kbd> ou <kbd>◀</kbd><kbd>▶</kbd> para andar à direita e <kbd>ESPAÇO</kbd> / <kbd>PULAR ▲</kbd> para pegar seu 1º cristal!`;
+      } else if (!ready) {
+        const left = state.ch1Goal - state.ch1Order.length;
+        guideEl.innerHTML = `🧭 <b>Tutorial (2/3 — Coleta):</b> Pegue cristais de formas ou cores <b>diferentes</b>! Repetidos não aumentam <b>|A|</b> (Faltam <b>${left}</b>).`;
+      } else {
+        guideEl.innerHTML = `🧭 <b>Tutorial (3/3 — Altar):</b> Meta <b>|A| = 5</b> atingida! Siga à direita até o <b>Monólito I</b> e aperte <kbd>E</kbd> ou toque em <b>ABRIR MONÓLITO I</b>.`;
+      }
+    }
   } else if (currentChapter === 2) {
     stageTag.textContent = 'FASE II: INTERSEÇÃO (A ∩ B)';
     goalEl.innerHTML = `Pegue só <em>A ∩ B</em>: <b>Tom Quente</b> (Dourado/Rosa) <b>E Com Pontas</b>!`;
@@ -325,8 +338,17 @@ function updateHUD() {
       state.ch2Got.map(it => `<span class="hud-bag-item">${icon(it, 18)}</span>`).join('') +
       `<span>}</span>`;
     statusEl.innerHTML =
-      `<span>Coletados: <b>${state.ch2Got.length} / ${state.ch2Goal}</b> (Cuidado com os errados!)</span>` +
+      `<span>Coletados: <b>${state.ch2Got.length} / ${state.ch2Goal}</b> (Cuidado com os fora de A ∩ B!)</span>` +
       (ready ? `<span class="ready-badge">ALTAR PRONTO!</span>` : '');
+
+    if (guideEl) {
+      if (!ready) {
+        const left = state.ch2Goal - state.ch2Got.length;
+        guideEl.innerHTML = `🧭 <b>Guia Fase II:</b> Na interseção <b>A ∩ B</b> valem só os cristais <b>Quentes E Com Pontas</b>. Pule por cima de círculos e cristais azuis! (Faltam <b>${left}</b>)`;
+      } else {
+        guideEl.innerHTML = `🧭 <b>Guia Fase II:</b> 4 cristais de <b>A ∩ B</b> coletados! Vá até o <b>Altar II</b> à direita e aperte <kbd>E</kbd> ou toque em <b>ABRIR ALTAR II</b>.`;
+      }
+    }
   } else if (currentChapter === 3) {
     stageTag.textContent = 'FASE III: A PONTE DA UNIÃO (A ∪ B)';
     goalEl.innerHTML = `Desça até a beira do abismo e acione a <em>Alavanca da Ponte</em>`;
@@ -334,13 +356,25 @@ function updateHUD() {
     statusEl.innerHTML =
       `<span>Construção da Ponte: <b>${Math.round(bridge.p * 100)}%</b></span>` +
       `<span class="ready-badge">ALAVANCA ATIVA</span>`;
+
+    if (guideEl) {
+      guideEl.innerHTML = `🧭 <b>Guia Fase III:</b> Caminhe até a <b>Alavanca da Ponte</b> antes do abismo e aperte <kbd>E</kbd> para unir os conjuntos A e B sem contar a interseção duas vezes.`;
+    }
   } else {
-    stageTag.textContent = 'FASE IV: INCLUSÃO-EXCLUSÃO';
+    stageTag.textContent = 'FASE IV: 3 CONJUNTOS & COMPLEMENTAR';
     goalEl.innerHTML = `Suba pelos ventos e ouça os <em>Viajantes</em> antes do Santuário`;
     bagEl.innerHTML = `<span>Conjuntos: <b>A (Areia)</b>, <b>V (Vento)</b>, <b>E (Estrela)</b> em <b>U</b></span>`;
     statusEl.innerHTML =
       `<span>Pistas anotadas: <b>${state.ch4Clues} / 5</b></span>` +
       (ready ? `<span class="ready-badge">SANTUÁRIO PRONTO!</span>` : '');
+
+    if (guideEl) {
+      if (!ready) {
+        guideEl.innerHTML = `🧭 <b>Guia Fase IV:</b> Entre nos feixes azuis de vento e <b>SEGURE [PULAR]</b> para planar alto! Passe pelos <b>Ecos dos Viajantes</b> (${state.ch4Clues}/5).`;
+      } else {
+        guideEl.innerHTML = `🧭 <b>Guia Fase IV:</b> Pistas registradas no Caderno! Continue subindo até o topo e aperte <kbd>E</kbd> no <b>Santuário Final</b>.`;
+      }
+    }
   }
 }
 
@@ -483,12 +517,29 @@ async function triggerAltarInteraction() {
     updateNotesUI();
     await runDialog([
       {
+        speaker: 'Mestre Lia (Cartógrafa)',
+        portrait: 'npc',
+        text: `A ponte da <b>União (A ∪ B)</b> está firme! Na subida final há <b>3 conjuntos</b>: <b>Areia (A)</b>, <b>Vento (V)</b> e <b>Estrela (E)</b> dentro do Universo <b>U</b>.`
+      },
+      {
         speaker: 'Leo (Explorador)',
         portrait: 'hero',
-        text: `A ponte está firme! Agora começa a subida para o Cume dos Ventos. Segurando <b>[PULAR]</b> dentro das correntes de vento, minha capa me leva para o alto!`
+        text: `Vou entrar nas correntes azuis de vento e <b>segurar [PULAR]</b> para planar até os 5 Ecos dos Viajantes e anotar todas as pistas no Caderno!`
       }
     ]);
   } else if (al.ch === 4) {
+    await runDialog([
+      {
+        speaker: 'Mestre Lia (Cartógrafa)',
+        portrait: 'npc',
+        text: `No Santuário dos 3 Conjuntos, cada região mostra um contador (<b>0x, 1x, 2x</b>): ele indica <b>quantas vezes</b> aquela região foi contada na sua fórmula!`
+      },
+      {
+        speaker: 'Leo (Explorador)',
+        portrait: 'hero',
+        text: `Entendi! Se ficar <b>2x ou 3x</b>, foi contada repetida e preciso <b>subtrair a interseção</b>. Minha meta é deixar todas as 7 regiões com <b>1x</b>!`
+      }
+    ]);
     await runAltar4();
     al.solved = true;
     gameMode = 'victory';
@@ -504,6 +555,7 @@ async function triggerAltarInteraction() {
         text: `Contar bem é não esquecer ninguém, e não contar ninguém duas vezes! Missão cumprida no topo da montanha!`
       }
     ]);
+    await showTeacherReportModal(true);
     resetWorld();
     const stageSel = document.getElementById('stage-select');
     if (stageSel) stageSel.value = '1';
@@ -660,6 +712,7 @@ function update(dt) {
           showToast(`Boa! ${describe(it)} está em <b>A ∩ B</b> (${state.ch2Got.length}/${state.ch2Goal}).`);
           updateHUD();
         } else {
+          if (typeof PEDAGOGY !== 'undefined') PEDAGOGY.recordPathError(2);
           P.hearts--;
           P.invuln = 45;
           SFX.hurt();
@@ -1179,6 +1232,17 @@ document.getElementById('btn-sound')?.addEventListener('click', e => {
   e.currentTarget.textContent = muted ? 'SOM: OFF' : 'SOM: ON';
 });
 
+document.getElementById('btn-report')?.addEventListener('click', async () => {
+  SFX.init();
+  SFX.blip();
+  const prevMode = gameMode;
+  if (gameMode === 'play') gameMode = 'puzzle';
+  await showTeacherReportModal(false);
+  if (gameMode === 'puzzle' && $('#puzzle-modal').classList.contains('hidden')) {
+    gameMode = prevMode;
+  }
+});
+
 document.getElementById('stage-select')?.addEventListener('change', e => {
   const ch = parseInt(e.target.value, 10);
   if (ch >= 1 && ch <= 4) {
@@ -1199,12 +1263,17 @@ document.getElementById('btn-start-game')?.addEventListener('click', async () =>
     {
       speaker: 'Mestre Lia (Cartógrafa)',
       portrait: 'npc',
-      text: `Bem-vinda às Ruínas dos Conjuntos, <b>Leo</b>! Para abrir o <b>Monólito I</b>, você precisa montar um conjunto <b>A</b> com <b>5 cristais distintos (|A| = 5)</b>.`
+      text: `Bem-vindo às Ruínas dos Conjuntos, <b>Leo</b>! Nesta jornada, cada fase guarda um <b>Altar Matemático</b> que só abre quando você cumpre a meta do conjunto no caminho.`
+    },
+    {
+      speaker: 'Mestre Lia (Cartógrafa)',
+      portrait: 'npc',
+      text: `<b>Tutorial Rápido:</b> 1) Ande com <b>[A / D]</b> ou <b>[◀ / ▶]</b> e pule nas plataformas com <b>[Espaço / W / PULAR ▲]</b>. 2) Na Fase I, junte <b>5 cristais distintos (|A| = 5)</b>. 3) Ao chegar ao Monólito à direita, aperte <b>[E]</b>!`
     },
     {
       speaker: 'Leo (Explorador)',
       portrait: 'hero',
-      text: `Pode deixar! Vou usar <b>[A / D]</b> ou as <b>[Setas]</b> para explorar o vale e <b>[Espaço / W]</b> para pular nas plataformas em busca de 5 formas/cores diferentes!`
+      text: `Entendido! Vou acompanhar a barra <b>Guia</b> no topo da tela para saber cada passo e usar o botão <b>💡 Dica</b> nos altares se tiver dúvida!`
     }
   ]);
   gameMode = 'play';

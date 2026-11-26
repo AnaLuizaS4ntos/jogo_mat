@@ -1115,4 +1115,323 @@ input[type="range"].retro-slider::-webkit-slider-thumb {
     font-size: 12.5px;
     padding: 6px 8px;
   }
+
+  .guide-banner {
+    font-size: 10.5px;
+    padding: 4px 6px;
+    margin-top: 4px;
+  }
+}
+
+/* ================= NOVOS COMPONENTES PEDAGÓGICOS (TUTORIAL, LEGENDA, DICAS, RESUMO E RELATÓRIO) ================= */
+.guide-banner {
+  margin-top: 8px;
+  padding: 7px 10px;
+  background: rgba(18, 40, 56, 0.85);
+  border-left: 3px solid var(--teal);
+  font-size: 13px;
+  line-height: 1.45;
+  color: #e6f9ff;
+}
+
+.guide-banner b {
+  color: var(--gold);
+}
+
+.guide-banner kbd {
+  display: inline-block;
+  font-family: 'Silkscreen', monospace;
+  font-weight: 700;
+  font-size: 10px;
+  color: var(--gold);
+  background: #2b2245;
+  border: 1.5px solid #6b569c;
+  padding: 1px 5px;
+  margin: 0 1px;
+}
+
+.hint-btn {
+  background: #2b3a67;
+  border-color: var(--teal);
+  color: #dff9ff;
+  font-size: 11.5px;
+  padding: 7px 12px;
+  flex-shrink: 0;
+}
+
+.hint-btn:hover:not(:disabled) {
+  background: #394d85;
+  color: var(--gold);
+}
+
+.hint-btn.hidden {
+  display: none;
+}
+
+.hint-highlight {
+  display: block;
+  color: #fff6d6;
+}
+
+.puzzle-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 7px 10px;
+  background: #161126;
+  border: 2px solid #382e56;
+  font-size: 12.5px;
+}
+
+.puzzle-legend.hidden {
+  display: none;
+}
+
+.leg-title {
+  color: var(--ink-muted);
+  font-weight: 700;
+  margin-right: 4px;
+}
+
+.leg-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  border: 1.5px solid transparent;
+}
+
+.leg-chip.zero {
+  background: #221b36;
+  border-color: #6b5d8c;
+  color: #d0c4eb;
+}
+
+.leg-chip.ok {
+  background: #1b5c34;
+  border-color: #5cd85a;
+  color: #eaffea;
+}
+
+.leg-chip.over {
+  background: #6e2236;
+  border-color: #ff6b8b;
+  color: #ffe6ec;
+}
+
+.leg-chip.neg {
+  background: #1c536e;
+  border-color: #48dbfb;
+  color: #e6f9ff;
+}
+
+/* Modal de Resumo de Fase e Relatório do Professor */
+#summary-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 35;
+  background: rgba(12, 8, 22, 0.88);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+}
+
+#summary-modal.hidden {
+  display: none;
+}
+
+.summary-window {
+  width: min(700px, 96vw);
+  max-height: 94vh;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px;
+  overflow-y: auto;
+}
+
+#summary-title {
+  font-family: 'Silkscreen', monospace;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--gold);
+  line-height: 1.4;
+}
+
+#summary-subtitle {
+  font-size: 13.5px;
+  color: var(--teal);
+  margin-top: 3px;
+}
+
+.summary-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.summary-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.summary-card {
+  background: #161126;
+  border: 2px solid #382e56;
+  padding: 10px 14px;
+}
+
+.summary-card p {
+  margin: 4px 0 0 0;
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--ink);
+}
+
+.summary-label {
+  font-family: 'Silkscreen', monospace;
+  font-weight: 700;
+  font-size: 11px;
+  color: var(--gold);
+  letter-spacing: 0.4px;
+}
+
+.summary-formula {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 4px 10px;
+  background: rgba(255, 206, 84, 0.14);
+  border: 1.5px solid var(--gold);
+  color: var(--gold);
+  font-weight: 700;
+  font-size: 14.5px;
+}
+
+.summary-stats-bar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+  background: #122434;
+  border: 2px solid var(--teal);
+  padding: 9px 12px;
+  font-size: 13.5px;
+}
+
+.summary-stats-bar b {
+  color: var(--gold);
+}
+
+.summary-footer {
+  display: flex;
+  justify-content: center;
+  margin-top: 4px;
+}
+
+.report-table-wrap {
+  overflow-x: auto;
+}
+
+.report-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #151024;
+  font-size: 13.5px;
+}
+
+.report-table th,
+.report-table td {
+  border: 2px solid #352b52;
+  padding: 8px 10px;
+  text-align: left;
+}
+
+.report-table th {
+  background: #241c3b;
+  color: var(--gold);
+  font-family: 'Silkscreen', monospace;
+  font-size: 11px;
+}
+
+.report-table td small {
+  color: var(--teal);
+  font-size: 12px;
+}
+
+.rep-status {
+  display: inline-block;
+  padding: 2px 7px;
+  font-size: 11.5px;
+  font-weight: 700;
+  border-radius: 4px;
+}
+
+.rep-status.ok {
+  background: rgba(92, 216, 90, 0.18);
+  color: var(--green);
+  border: 1px solid var(--green);
+}
+
+.rep-status.pending {
+  background: rgba(194, 182, 214, 0.12);
+  color: var(--ink-muted);
+  border: 1px solid #5a4e78;
+}
+
+@media (max-width: 768px) {
+  .guide-banner {
+    margin-top: 5px;
+    padding: 5px 8px;
+    font-size: 11.5px;
+    line-height: 1.35;
+  }
+
+  .puzzle-legend {
+    gap: 5px;
+    padding: 5px 6px;
+    font-size: 11px;
+  }
+
+  .leg-chip {
+    font-size: 10.5px;
+    padding: 2px 6px;
+  }
+
+  .summary-window {
+    width: 98vw;
+    padding: 12px;
+    gap: 8px;
+  }
+
+  #summary-title {
+    font-size: 12px;
+  }
+
+  .summary-card {
+    padding: 8px 10px;
+  }
+
+  .summary-card p {
+    font-size: 13px;
+  }
+
+  .summary-stats-bar {
+    font-size: 12px;
+    padding: 7px 9px;
+  }
+
+  .report-table {
+    font-size: 12px;
+  }
+
+  .report-table th,
+  .report-table td {
+    padding: 6px 7px;
+  }
 }
